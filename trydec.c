@@ -15,13 +15,15 @@ int
 main(void){
   int input, nr;
   unsigned char* buff;
-  unsigned char* pass;
+  char* pass;
   unsigned char salt[PKCS5_SALT_LEN];
   unsigned char key[32];
   unsigned char  iv[16];
+  int passlen;
   const EVP_CIPHER *cipher;
   const EVP_MD *digest;
-  pass = (unsigned char*)getenv("PASS");
+  pass = (char*)getenv("PASS");
+  passlen = (unsigned int) strlen(pass);
   printf("the password is %s\n", pass);
   cipher = EVP_aes_256_cbc();
 
@@ -45,7 +47,7 @@ main(void){
   close(input);
   memcpy(salt, buff+8, PKCS5_SALT_LEN);
 
-  EVP_BytesToKey(cipher, digest, salt, pass, (int)strlen(pass), 1, key, iv);
+  EVP_BytesToKey(cipher, digest, salt, (unsigned char*)pass, strlen(pass), 1, key, iv);
 
   //  printf("key = %s\niv = %s\n", key,iv);
   // printf("the salt length is %d\n", PKCS5_SALT_LEN);

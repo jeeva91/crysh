@@ -2,7 +2,7 @@
 #include<fcntl.h>
 char** get_parse_options(char* input, int* argc);
 int redirection(char* arg);
-
+/*
 int
 main(void){
   char *commands, *lineptr = NULL;
@@ -15,6 +15,7 @@ main(void){
   free(lineptr);
   return 0;
   }
+*/
 /* splits the commands with delimiter ; and executes them recursively */
 int
 get_command(char* commands, size_t len){
@@ -101,10 +102,10 @@ execute(char* command){
 int
 redirection(char* arg){
   int fd;
-  //char *file;
+
   if((strncmp(arg, "2>>",3))==0){
     /* perform stderr redirection with append to file */
-    //file = strsep(&arg, "2>>");
+
     fd = open(arg+3, O_APPEND|O_CREAT|O_WRONLY);
     if(fd==-1){
       fprintf(stderr,"unable to open the file: %s error: %s\n", arg+3, strerror(errno));
@@ -115,7 +116,7 @@ redirection(char* arg){
   }
   else if((strncmp(arg, ">>",2))==0){
     /* perform stdout redirection with append to file */
-    //    file = strsep(&arg, ">>");
+
     fd = open(arg+2, O_APPEND|O_CREAT|O_WRONLY);
     if(fd==-1){
       fprintf(stderr,"unable to open the file: %s error: %s\n", arg+2, strerror(errno));
@@ -126,7 +127,7 @@ redirection(char* arg){
   }
   else if((strncmp(arg, "2>", 2))==0){
     /*redirect stderr to file*/
-    //file = strsep(&arg, "2>");
+
     fd = open(arg+2, O_CREAT|O_WRONLY);
     if(fd==-1){
       fprintf(stderr,"unable to open the file: %s error: %s\n", arg+2, strerror(errno));
@@ -136,7 +137,7 @@ redirection(char* arg){
     return fd;
   }
   else if((strncmp(arg, ">", 1))==0){
-    //    file = strsep(&arg, ">");
+
     fd = open(arg+1, O_CREAT|O_WRONLY);
     if(fd==-1){
       fprintf(stderr,"unable to open the file: %s error: %s\n", arg+1, strerror(errno));

@@ -1,15 +1,5 @@
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<errno.h>
-#include<sysexits.h>
-#include<sys/wait.h>
-
-int get_command(char*, size_t);
-int execute(char*);
-char* strstrip(char* token);
-
+#include"crysh.h"
+/*
 int
 main(void){
   char *commands, *lineptr = NULL;
@@ -21,8 +11,8 @@ main(void){
     get_command(commands, linelen);
   free(lineptr);
   return 0;
-}
-/* gets the independent commands and executes them recursively */
+  }*/
+/* splits the commands with delimiter ; and executes them recursively */
 int
 get_command(char* commands, size_t len){
   char* token;
@@ -49,9 +39,13 @@ strstrip(char* token){
     token = token+1;
 
   tokenlen = strlen(token);
-  while((token[tokenlen-1]=='\t')||(token[tokenlen-1]=='\n')||(token[tokenlen-1]==' ')){
+  while((token[tokenlen-1]=='\t')||
+	(token[tokenlen-1]=='\n')||
+	(token[tokenlen-1]==' ')) {
+
     token[tokenlen-1]='\0';
     tokenlen-=1;
+    
   }
   
   if(token[0]=='\0')
@@ -59,9 +53,10 @@ strstrip(char* token){
   return token;
 }
 
-/* forks are executes the given command */
+/* forks and executes the given command */
 int
 execute(char* command){
+  char **argv;
   if((command[0]=='\0')||command[0]=='\n')
     return 0;
 
@@ -74,12 +69,39 @@ execute(char* command){
   }
   else if(pid==0){
     //chdir("/bin");
-    execlp(command, command, (char*) 0);
-    fprintf(stderr, "crysh: couldn't exex %s: %s\n", command, strerror(errno));
+    int out_fd, err_fd;
+    argv = parse_options(command, &out_fd, &err_fd);
+    execvp(argv[0], argv);
+    fprintf(stderr, "crysh: couldn't exex %s: %s\n",
+	    command, strerror(errno));
     exit(EX_DATAERR);
   }
   if((pid = waitpid( pid, &status, 0))<0)
     fprintf(stderr, "CRYsh: waitpid error: %s\n", strerror(errno));
   
   return 0;
+}
+
+char** 
+parse_options(char* input, int* out_fd, int *err_fd){
+  int len = strlen(input);
+  char** argv;
+  char* token;
+  int i;
+  
+  if((argv=malloc(len))==NULL){
+    fprintf(stderr, "malloc failed in %s\n", input);
+  }
+
+  i=0;
+  token = strtok(input," \t");
+  do{
+
+    argv[i] = token;
+    token = strtok(NULL," \t");
+    i+=1;
+  }while(token!=NULL);
+  
+
+  return argv;
 }

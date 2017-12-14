@@ -2,7 +2,7 @@
 #include<fcntl.h>
 char** get_parse_options(char* input, int* argc);
 int redirection(char* arg);
-/*
+
 int
 main(void){
   char *commands, *lineptr = NULL;
@@ -14,7 +14,7 @@ main(void){
     get_command(commands, linelen);
   free(lineptr);
   return 0;
-  }*/
+  }
 /* splits the commands with delimiter ; and executes them recursively */
 int
 get_command(char* commands, size_t len){
@@ -72,18 +72,21 @@ execute(char* command){
     perror("CRYsh unalbe to fork");
     
   }
-  else if(pid>0){
+  else if(pid==0){
     //chdir("/bin");
     //int out_fd, err_fd;
 
     argv = get_parse_options(command, &argc);
-    if((fd=redirection(argv[argc]))==0){
-      argv[argc]='\0';
-    }
-    else if((fd=redirection(argv[argc-1]))== 0){
-      argv[argc-1]='\0';
+    if(argc>0){
+      if((fd=redirection(argv[argc]))!=0){
+	argv[argc]='\0';
+	if(argc>1){
+	  if((fd=redirection(argv[argc-1]))!= 0){
+	    argv[argc-1]='\0';
+	  }
+	}
       }
-    
+    }
     execvp(argv[0], argv);
     fprintf(stderr, "crysh: couldn't exex %s: %s\n",
 	    command, strerror(errno));
@@ -98,13 +101,13 @@ execute(char* command){
 int
 redirection(char* arg){
   int fd;
-  char *file;
+  //char *file;
   if((strncmp(arg, "2>>",3))==0){
     /* perform stderr redirection with append to file */
-    file = strsep(&arg, "2>>");
-    fd = open(arg, O_APPEND|O_CREAT|O_WRONLY);
+    //file = strsep(&arg, "2>>");
+    fd = open(arg+3, O_APPEND|O_CREAT|O_WRONLY);
     if(fd==-1){
-      fprintf(stderr,"unable to open the file: %s error: %s\n", arg, strerror(errno));
+      fprintf(stderr,"unable to open the file: %s error: %s\n", arg+3, strerror(errno));
       exit(128);
     }
     dup2(fd, STDERR_FILENO);
@@ -112,10 +115,10 @@ redirection(char* arg){
   }
   else if((strncmp(arg, ">>",2))==0){
     /* perform stdout redirection with append to file */
-    file = strsep(&arg, ">>");
-    fd = open(arg, O_APPEND|O_CREAT|O_WRONLY);
+    //    file = strsep(&arg, ">>");
+    fd = open(arg+2, O_APPEND|O_CREAT|O_WRONLY);
     if(fd==-1){
-      fprintf(stderr,"unable to open the file: %s error: %s\n", arg, strerror(errno));
+      fprintf(stderr,"unable to open the file: %s error: %s\n", arg+2, strerror(errno));
       exit(128);
     }
     dup2(fd, STDOUT_FILENO);
@@ -123,23 +126,23 @@ redirection(char* arg){
   }
   else if((strncmp(arg, "2>", 2))==0){
     /*redirect stderr to file*/
-    file = strsep(&arg, "2>");
-    fd = open(arg, O_CREAT|O_WRONLY);
+    //file = strsep(&arg, "2>");
+    fd = open(arg+2, O_CREAT|O_WRONLY);
     if(fd==-1){
-      fprintf(stderr,"unable to open the file: %s error: %s\n", arg, strerror(errno));
+      fprintf(stderr,"unable to open the file: %s error: %s\n", arg+2, strerror(errno));
       exit(128);
     }
     dup2(fd, STDERR_FILENO);
     return fd;
   }
   else if((strncmp(arg, ">", 1))==0){
-    file = strsep(&arg, ">");
-    fd = open(arg, O_CREAT|O_WRONLY);
+    //    file = strsep(&arg, ">");
+    fd = open(arg+1, O_CREAT|O_WRONLY);
     if(fd==-1){
-      fprintf(stderr,"unable to open the file: %s error: %s\n", arg, strerror(errno));
+      fprintf(stderr,"unable to open the file: %s error: %s\n", arg+1, strerror(errno));
       exit(128);
     }
-    dup2(fd, STDIN_FILENO);
+    dup2(fd, STDOUT_FILENO);
     return fd;
   }
   return 0;

@@ -1,14 +1,7 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<sys/types.h>
-#include<sys/stat.h>
-#include<fcntl.h>
-#include<unistd.h>
-#include<string.h>
+#include"crysh.h"
 #include<openssl/evp.h>
 #include<openssl/aes.h>
-#include"crysh.h"
-
+#include<fcntl.h>
 
 #define BUFFSIZE 256
 int
@@ -44,7 +37,7 @@ main(void){
     perror("digest failed");
     exit(128);
   }
-  /*
+ 
   //malloc will be done by getline
 
   if((buff = malloc(BUFFSIZE))==NULL){
@@ -64,41 +57,17 @@ main(void){
     }
   close(input);
   
-  */
-
-  nr = getline(&buff, &nr, stdin);
   
+
+  //nr = getline(&buff, &nr, stdin);
+  if((strncmp(buff, "Salted__",8))!=0){
+    perror("unable to decrypt exiting");
+    exit(128);
+  }
   memcpy(salt, buff+PKCS5_SALT_LEN, PKCS5_SALT_LEN);
 
   EVP_BytesToKey(cipher, digest, salt, (unsigned char*)pass, passlen, 1, key, iv);
 
-  /*  size_t i;  
-
-  printf("salt = ");
-  for(i=0;i<8;i++){
-  printf("%02X", salt[i]);
-  }
-
-  printf("\nkey = ");
-  for(i=0;i<32;i++){
-    printf("%02X", key[i]);
-  }
-
-  printf("\niv = ");
-  for(i=0;i<16;i++){
-    printf("%02X", iv[i]);
-  }
-  printf("\n");
-
-
-
-  printf("encrypted data is ");
-  for(i=0;i<nr-16;i++){
-    
-    printf("%02x",buff[16+i]);
-  }
-  printf("\n");
-  */
   //EVP init  
   EVP_CIPHER_CTX_init(&d_ctx);
   
@@ -112,7 +81,7 @@ main(void){
   // EVP_DecryptFinal(&d_ctx, (unsigned char*)commands, &lencommands);
   char * c;
   c = strsep(&commands, "\n");
-  printf("decrypted data: %s\n", c);
+  // printf("decrypted data: %s\n", c);
   get_command(c, strlen(c));
   
   free(commands);

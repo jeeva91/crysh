@@ -37,32 +37,12 @@ main(void){
     perror("digest failed");
     exit(128);
   }
- 
-  //malloc will be done by getline
-
-  if((buff = malloc(BUFFSIZE))==NULL){
-    perror("malloc failed");
-    exit(128);
-    }
-
-  //To get the input from the file
-
-  int input;
-  if((input = open("encdata", O_RDONLY))<0){
-    perror("unalbe to open the file encdata");
-  }
   
-  if((nr = read(input, buff, BUFFSIZE))==0){
-    perror("unable to read the file");
-    }
-  close(input);
-  
-  
-
-  //nr = getline(&buff, &nr, stdin);
+  buff = NULL;
+  nr = getline(&buff, &nr, stdin);
   if((strncmp(buff, "Salted__",8))!=0){
-    perror("unable to decrypt exiting");
-    exit(128);
+    fprintf(stderr, "unable to decrypt exiting\n");
+    return(128);
   }
   memcpy(salt, buff+PKCS5_SALT_LEN, PKCS5_SALT_LEN);
 

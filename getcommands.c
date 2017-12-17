@@ -102,48 +102,52 @@ execute(char* command){
 int
 redirection(char* arg){
   int fd;
-
+  mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
   if((strncmp(arg, "2>>",3))==0){
     /* perform stderr redirection with append to file */
 
-    fd = open(arg+3, O_APPEND|O_CREAT|O_WRONLY);
+    fd = open(arg+3, O_APPEND|O_CREAT|O_WRONLY, mode);
     if(fd==-1){
       fprintf(stderr,"unable to open the file: %s error: %s\n", arg+3, strerror(errno));
       exit(128);
     }
     dup2(fd, STDERR_FILENO);
+    close(fd);
     return fd;
   }
   else if((strncmp(arg, ">>",2))==0){
     /* perform stdout redirection with append to file */
 
-    fd = open(arg+2, O_APPEND|O_CREAT|O_WRONLY);
+    fd = open(arg+2, O_APPEND|O_CREAT|O_WRONLY, mode);
     if(fd==-1){
       fprintf(stderr,"unable to open the file: %s error: %s\n", arg+2, strerror(errno));
       exit(128);
     }
     dup2(fd, STDOUT_FILENO);
+    close(fd);
     return fd;
   }
   else if((strncmp(arg, "2>", 2))==0){
     /*redirect stderr to file*/
 
-    fd = open(arg+2, O_CREAT|O_WRONLY);
+    fd = open(arg+2, O_CREAT|O_WRONLY, mode);
     if(fd==-1){
       fprintf(stderr,"unable to open the file: %s error: %s\n", arg+2, strerror(errno));
       exit(128);
     }
     dup2(fd, STDERR_FILENO);
+    close(fd);
     return fd;
   }
   else if((strncmp(arg, ">", 1))==0){
 
-    fd = open(arg+1, O_CREAT|O_WRONLY);
+    fd = open(arg+1, O_CREAT|O_WRONLY, mode);
     if(fd==-1){
       fprintf(stderr,"unable to open the file: %s error: %s\n", arg+1, strerror(errno));
       exit(128);
     }
     dup2(fd, STDOUT_FILENO);
+    close(fd);
     return fd;
   }
   return 0;
